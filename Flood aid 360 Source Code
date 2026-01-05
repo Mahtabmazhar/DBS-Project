@@ -1,0 +1,125 @@
+-- READ (View all resources)
+SELECT * FROM Resource;
+-- UPDATE (Update resource quantity)
+UPDATE Resource
+SET Quantity = Quantity + 50
+WHERE ResourceID = 1;
+-- DELETE (Remove resource)
+DELETE FROM Resource
+WHERE ResourceID = 11;
+-- -----------------------------
+-- DISTRIBUTION CRUD
+-- -----------------------------
+-- CREATE (Distribute resource to a victim)
+INSERT INTO Distribution (VictimID, ResourceID, Date,
+Quantity)
+VALUES (1, 1, CURDATE(), 2);
+-- READ (View distributions with victim & resource)
+SELECT Victim.Name AS Victim, Resource.Type AS
+Resource, Distribution.Quantity, Distribution.Date
+FROM Distribution
+JOIN Victim ON Distribution.VictimID = Victim.VictimID
+JOIN Resource ON Distribution.ResourceID =
+Resource.ResourceID;
+-- UPDATE (Update distribution quantity)
+UPDATE Distribution
+SET Quantity = 5
+WHERE DistributionID = 1;
+-- DELETE (Remove a distribution record)
+DELETE FROM Distribution
+WHERE DistributionID = 11;
+-- -----------------------------
+-- VOLUNTEER CRUD
+-- -----------------------------
+-- CREATE (Add volunteer)
+INSERT INTO Volunteer (Name, Skill, Location,
+Availability)
+VALUES ('Adeel Khan', 'Medical Aid', 'Swat', TRUE);
+-- READ (View available volunteers)
+SELECT Name, Skill, Location
+FROM Volunteer
+WHERE Availability = TRUE;
+-- UPDATE (Update volunteer availability)
+UPDATE Volunteer
+SET Availability = FALSE
+WHERE VolunteerID = 1;
+-- DELETE (Remove volunteer)
+DELETE FROM Volunteer
+WHERE VolunteerID = 11;
+-- -----------------------------
+-- DONOR CRUD
+-- -----------------------------
+-- CREATE (Add donor)
+INSERT INTO Donor (Name, Contact, DonationType)
+VALUES ('Global Fund', '0300-1112222', 'Medical');
+-- READ (View all donors)
+SELECT * FROM Donor;
+-- UPDATE (Update donor contact)
+UPDATE Donor
+SET Contact = '0300-9998888'
+WHERE DonorID = 1;
+-- DELETE (Remove donor)
+DELETE FROM Donor
+WHERE DonorID = 11;
+-- -----------------------------
+-- DONATION CRUD
+-- -----------------------------
+-- CREATE (Record donation)
+INSERT INTO Donation (DonorID, ResourceID, Amount,
+Date)
+VALUES (1, 1, 300, CURDATE());
+-- READ (View donations with donor & resource details)
+SELECT Donor.Name AS Donor, Resource.Type AS Resource,
+Donation.Amount, Donation.Date
+FROM Donation
+JOIN Donor ON Donation.DonorID = Donor.DonorID
+JOIN Resource ON Donation.ResourceID =
+Resource.ResourceID;
+-- UPDATE (Update donation amount)
+UPDATE Donation
+SET Amount = 500
+WHERE DonationID = 1;
+-- DELETE (Remove donation)
+DELETE FROM Donation
+WHERE DonationID = 11;
+-- =========================================
+-- BUSINESS RULE QUERIES
+-- =========================================
+-- 1. High-priority victims
+SELECT Name, PriorityLevel
+FROM Victim
+WHERE PriorityLevel = 'High';
+-- 2. Resources about to expire
+SELECT Type, ExpiryDate
+FROM Resource
+WHERE ExpiryDate IS NOT NULL
+ORDER BY ExpiryDate ASC;
+-- 3. Volunteers by skill and location
+SELECT Name, Skill
+FROM Volunteer
+WHERE Skill LIKE '%Medical%'
+AND Location = 'Swat';
+-- 4. Donations summary by donor
+SELECT Donor.Name, SUM(Donation.Amount) AS TotalAmount
+FROM Donation
+JOIN Donor ON Donation.DonorID = Donor.DonorID
+GROUP BY Donor.Name;
+-- 5. Resources distributed per victim
+SELECT Victim.Name AS Victim, Resource.Type AS
+Resource, SUM(Distribution.Quantity) AS TotalGiven
+FROM Distribution
+JOIN Victim ON Distribution.VictimID = Victim.VictimID
+JOIN Resource ON Distribution.ResourceID =
+Resource.ResourceID
+GROUP BY Victim.Name, Resource.Type;
+-- 6. Dashboard: victims per area
+SELECT Area.District, COUNT(Victim.VictimID) AS
+TotalVictims
+FROM Victim
+JOIN Area ON Victim.AreaID = Area.AreaID
+GROUP BY Area.District;
+-- 7. Dashboard: available volunteers per skill
+SELECT Skill, COUNT(*) AS AvailableVolunteers
+FROM Volunteer
+WHERE Availability = TRUE
+GROUP BY Skill;
